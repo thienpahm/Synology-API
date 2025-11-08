@@ -28,7 +28,12 @@ const client = require('./synoClient');
     console.log('Rename result:', renameRes);
 
   } catch (err) {
-    console.error('Demo error:', err.Message || err);
+    // Print full error object so we can see TriedURL / Response details
+    try {
+      console.error('Demo error:', JSON.stringify(err, null, 2));
+    } catch (e) {
+      console.error('Demo error (raw):', err);
+    }
   } finally {
     await client.logout();
     console.log('Logged out');

@@ -94,24 +94,32 @@ Auth.prototype.Connect = function() {
                             session: 'DownloadStation',
                             format: 'cookie'
                         }
-                    }).then(function(loginResp) {
-                        var loginContent = loginResp.data;
-                        if (loginContent && loginContent.success) {
-                            NAS.server.token = loginContent.data.sid;
-                            resolve({ "Success": true, "Message": "Connected" });
-                        } else {
-                            reject({ "Success": false, "Message": Error[loginContent && loginContent.error && loginContent.error.code] });
-                        }
-                    }).catch(function() {
-                        reject({ "Succes": false });
-                    });
+                            }).then(function(loginResp) {
+                                var loginContent = loginResp.data;
+                                if (loginContent && loginContent.success) {
+                                    NAS.server.token = loginContent.data.sid;
+                                    resolve({ "Success": true, "Message": "Connected" });
+                                } else {
+                                    reject({ "Success": false, "Message": Error[loginContent && loginContent.error && loginContent.error.code], "TriedURL": NAS.URI + "/webapi/auth.cgi" });
+                                }
+                            }).catch(function(err) {
+                                if (NAS.server && NAS.server.debug) {
+                                    console.log('[Auth] auth.cgi login failed. Tried URL:', NAS.URI + '/webapi/auth.cgi', 'error:', err && err.message);
+                                    if (err && err.response) console.log('[Auth] auth.cgi response data:', err.response.data);
+                                }
+                                reject({ "Succes": false, "Message": "Auth login failed", "TriedURL": NAS.URI + "/webapi/auth.cgi", "Error": err && err.message, "Response": err && err.response && err.response.data });
+                            });
                 } else {
                     if (NAS.server.debug) { console.log("Authentifcation API is not avaiable") }
                     reject({ "Succes": false, "Message": "Authentifcation API is not avaiable" });
                 }
             })
-            .catch(function() {
-                reject({ "Succes": false, "Message": "Authentifcation API is not avaiable" });
+            .catch(function(err) {
+                if (NAS.server && NAS.server.debug) {
+                    console.log('[Auth] query.cgi failed. Tried URL:', NAS.URI + '/webapi/query.cgi', 'error:', err && err.message);
+                    if (err && err.response) console.log('[Auth] query.cgi response data:', err.response.data);
+                }
+                reject({ "Succes": false, "Message": "Authentifcation API is not avaiable", "TriedURL": NAS.URI + "/webapi/query.cgi", "Error": err && err.message, "Response": err && err.response && err.response.data });
             });
     });
 };

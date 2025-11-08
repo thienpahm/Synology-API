@@ -37,6 +37,8 @@ async function init(options) {
     config.password || '',
     !!config.debug
   );
+  // store baseRemotePath if provided (e.g. '/volume1/video' or '/video')
+  config.baseRemotePath = config.baseRemotePath || '';
   await syno.Auth.Connect();
   if (syno.server && syno.server.debug) {
     console.log('[synoClient] Connected. Token:', syno.server.token);
@@ -45,11 +47,29 @@ async function init(options) {
 }
 
 async function upload(localFile, remotePath, overwrite) {
-  return withReAuth(() => syno.FS.upload(localFile, remotePath, overwrite === true));
+  return withReAuth(() => {
+    // if remotePath omitted or empty, use configured baseRemotePath
+    var target = remotePath;
+    if (!target || target === '') target = config.baseRemotePath;
+    // normalize: if target does not start with '/', prefix baseRemotePath
+    if (config.baseRemotePath && !target.startsWith('/') && !target.startsWith(config.baseRemotePath)) {
+      // join
+      if (config.baseRemotePath.endsWith('/')) target = config.baseRemotePath + target;
+      else target = config.baseRemotePath + '/' + target;
+    }
+    return syno.FS.upload(localFile, target, overwrite === true);
+  });
 }
 
 async function rename(path, newName) {
-  return withReAuth(() => syno.FS.rename(path, newName));
+  return withReAuth(() => {
+    var target = path;
+    if (config.baseRemotePath && !target.startsWith('/')) {
+      if (config.baseRemotePath.endsWith('/')) target = config.baseRemotePath + target;
+      else target = config.baseRemotePath + '/' + target;
+    }
+    return syno.FS.rename(target, newName);
+  });
 }
 
 async function logout() {

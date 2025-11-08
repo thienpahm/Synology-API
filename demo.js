@@ -6,16 +6,19 @@ const client = require('./synoClient');
 (async () => {
   try {
     await client.init({
-      protocol: process.env.protocol || 'HTTP',
-      address: process.env.address ,
-      port: process.env.port,
-      username: process.env.username,
+      protocol: process.env.protocol || 'HTTP', // or 'HTTPS'
+      address: process.env.address,
+      port: process.env.port ,
+      username: process.env.username ,
       password: process.env.password,
-      debug: process.env.debug === 'true'
+      debug: process.env.debug === 'true',
+      // baseRemotePath: default remote folder to upload into
+      baseRemotePath: process.env.baseRemotePath
     });
 
     // Upload example (adjust local path!)
-    const uploadRes = await client.upload('C:/Videos/abc.mp4', '/video', true);
+    // You can omit remotePath to use baseRemotePath, or pass a relative path under it
+    const uploadRes = await client.upload('C:/Videos/abc.mp4', '', true);
     console.log('Upload result:', uploadRes);
 
     // Rename example (path must be full path to the uploaded file)

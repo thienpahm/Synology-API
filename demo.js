@@ -1,7 +1,21 @@
 // Demo script showing usage of synoClient wrapper
 // Adjust paths and NAS settings before running.
 
+// Load environment variables from .env
+require('dotenv').config();
 const client = require('./synoClient');
+
+function env(name) {
+  // accept lowercase or uppercase keys
+  let v = process.env[name] || process.env[name.toUpperCase()];
+  if (typeof v !== 'string') return v;
+  v = v.trim();
+  // strip surrounding single or double quotes
+  if ((v.startsWith("'") && v.endsWith("'")) || (v.startsWith('"') && v.endsWith('"'))) {
+    v = v.substring(1, v.length - 1);
+  }
+  return v;
+}
 
 (async () => {
   try {
